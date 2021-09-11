@@ -189,7 +189,7 @@ export default {
           display: flex;
           align-items: center;
           color: #fff;
-          justify-content: space-around;
+          justify-content: sp、ace-around;
           span {
             width: 20%;
             text-align: center;
