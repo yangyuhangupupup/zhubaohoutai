@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-05 14:38:58
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-11 15:28:08
+ * @LastEditTime: 2021-09-12 14:40:54
 -->
 <template>
   <div class="login">
@@ -22,7 +22,7 @@
             <div class="subtitle">珠宝盘点管理系统</div>
             <div class="form">
               <div>用户名</div>
-              <input type="text" v-model="account.username" />
+              <input type="text" v-model="account.account" />
               <div class="password">输入密码</div>
               <input type="password" v-model="account.password" />
             </div>
@@ -37,30 +37,20 @@
 </template>
 
 <script>
-import localCache from "@/utils/cache";
 export default {
   data() {
     return {
       account: {
-        username: "",
+        account: "",
         password: "",
       },
     };
   },
   methods: {
     goHome() {
-      console.log(this.account);
-      if (
-        this.account.username === "admin" &&
-        this.account.password === "123456"
-      ) {
-        localCache.setCache("userId", "123");
-        this.$router.push({
-          path: "/main",
-        });
-      } else {
-        return this.$message.error("您输入的账号密码有误");
-      }
+      this.$store.dispatch("login/accountLoginAction", { ...this.account });
+
+      // return this.$message.error("您输入的账号密码有误");
     },
   },
 };

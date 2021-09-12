@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-09 21:12:31
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-11 17:27:13
+ * @LastEditTime: 2021-09-12 14:58:01
  */
 const meuns = [
   {
@@ -83,6 +83,13 @@ const meuns = [
     id: 47,
     name: "人员管理",
     type: 2,
+  },
+  {
+    icon: "el-icon-monitor",
+    id: 47,
+    name: "托盘管理",
+    type: 2,
+    path: "/main/tray",
   },
 ];
 export default meuns;

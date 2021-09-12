@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-08-09 11:39:11
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-11 17:26:57
+ * @LastEditTime: 2021-09-12 14:58:49
  */
 import Vue from "vue";
 import VueRouter from "vue-router";
@@ -41,6 +41,11 @@ const routes = [
         name: "device",
         component: () => import("@/views/main/dashboard"),
       },
+      {
+        path: "/main/tray",
+        name: "device",
+        component: () => import("@/views/main/tray"),
+      },
     ],
   },
 ];
@@ -52,14 +57,12 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  // store.commit('getuserID')
-
-  let userID = localCache.getCache("userId");
-  if (!userID && to.name !== "login") {
+  let userInfo = localCache.getCache("userInfo");
+  if (!userInfo && to.name !== "login") {
     next({
       name: "login",
     });
-  } else if (userID && to.name === "login") {
+  } else if (userInfo && to.name === "login") {
     next({
       name: "main",
     });

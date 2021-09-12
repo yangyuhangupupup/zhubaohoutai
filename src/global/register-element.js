@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-05 15:35:26
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-11 16:14:07
+ * @LastEditTime: 2021-09-12 17:47:19
  */
 import {
   Button,
@@ -23,6 +23,13 @@ import {
   MenuItemGroup,
   Submenu,
   Avatar,
+  Table,
+  TableColumn,
+  Pagination,
+  Popconfirm,
+  Select,
+  Option,
+  Dialog,
 } from "element-ui";
 const components = [
   Button,
@@ -41,6 +48,13 @@ const components = [
   MenuItemGroup,
   Avatar,
   Submenu,
+  Table,
+  TableColumn,
+  Pagination,
+  Popconfirm,
+  Select,
+  Option,
+  Dialog,
 ];
 export default function(Vue) {
   for (const component of components) {

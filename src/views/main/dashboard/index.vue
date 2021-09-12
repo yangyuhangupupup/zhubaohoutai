@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-11 17:15:57
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 00:08:12
+ * @LastEditTime: 2021-09-12 14:09:49
 -->
 <template>
   <div class="dashboard">
@@ -86,9 +86,9 @@
 </template>
 
 <script>
-import Bar from "../../../components/echarts/bar.vue";
-import salesLine from "../../../components/echarts/line.vue";
-import numLine from "../../../components/echarts/line1.vue";
+import Bar from "@/components/echarts/bar.vue";
+import salesLine from "@/components/echarts/line.vue";
+import numLine from "@/components/echarts/line1.vue";
 export default {
   components: {
     Bar,
@@ -189,7 +189,7 @@ export default {
           display: flex;
           align-items: center;
           color: #fff;
-          justify-content: sp、ace-around;
+          justify-content: space-around;
           span {
             width: 20%;
             text-align: center;
