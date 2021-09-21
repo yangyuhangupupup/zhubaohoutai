@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-12 13:59:04
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 16:26:10
+ * @LastEditTime: 2021-09-21 18:16:28
  */
 /*
  * @Descripttion:
@@ -37,7 +37,7 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   (response) => {
     const res = response.data;
-    console.log(res, "axios拦截器的打印");
+    // console.log(res, "axios拦截器的打印");
     if (res.errcode !== 0 && res.code !== 0) {
       Message({
         message: res.errmsg || res.msg || "Error",
@@ -74,7 +74,7 @@ service.interceptors.response.use(
   (error) => {
     console.log("err" + error); // for debug
     Message({
-      message: error.message,
+      message: "服务器响应失败",
       type: "error",
       duration: 5 * 1000,
     });

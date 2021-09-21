@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-08-30 15:02:49
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 17:45:51
+ * @LastEditTime: 2021-09-15 22:32:19
 -->
 
 <template>
@@ -22,9 +22,11 @@
         ref="yhDialogForm"
         v-bind="DialogFormConfig"
         @selectChange="selectChange"
-      ></yh-form>
+      >
+      </yh-form>
     </div>
     <span slot="footer" class="dialog-footer">
+      <slot name="readcard"></slot>
       <el-button @click="close">关 闭</el-button>
       <el-button type="primary" @click="save">{{ confirmTitle }}</el-button>
     </span>

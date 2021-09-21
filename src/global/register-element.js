@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-05 15:35:26
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 17:47:19
+ * @LastEditTime: 2021-09-20 23:58:34
  */
 import {
   Button,
@@ -30,6 +30,10 @@ import {
   Select,
   Option,
   Dialog,
+  MessageBox,
+  Tag,
+  DatePicker,
+  Cascader,
 } from "element-ui";
 const components = [
   Button,
@@ -55,10 +59,14 @@ const components = [
   Select,
   Option,
   Dialog,
+  Tag,
+  DatePicker,
+  Cascader,
 ];
 export default function(Vue) {
   for (const component of components) {
     Vue.component(component.name, component);
   }
   Vue.prototype.$message = Message;
+  Vue.prototype.$confirm = MessageBox.confirm;
 }

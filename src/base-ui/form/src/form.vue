@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-08-27 22:19:17
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 17:58:42
+ * @LastEditTime: 2021-09-21 18:46:11
 -->
 <template>
   <div class="yh-form">
@@ -105,6 +105,14 @@
                     :disabled="item.disabled"
                   ></el-input>
                 </template>
+                <template v-if="item.type == 'button'">
+                  <el-button
+                    class="readCardBtn"
+                    type="primary"
+                    @click="readCard"
+                    >读卡</el-button
+                  >
+                </template>
                 <template v-else-if="item.type == 'select'">
                   <el-select
                     :placeholder="item.placeholder"
@@ -129,6 +137,17 @@
                   >
                   </el-date-picker>
                 </template>
+                <template v-else-if="item.type == 'cascader'">
+                  <el-cascader
+                    v-model="FormData[item.field]"
+                    :options="item.options"
+                    v-bind="item.otherOption"
+                    style="width:100%;"
+                    @change="CascaderhandleChange"
+                    size="medium"
+                  >
+                  </el-cascader>
+                </template>
               </el-form-item>
             </el-col>
           </template>
@@ -143,6 +162,8 @@
 </template>
 
 <script>
+import axios from "axios";
+import bus from "@/utils/bus";
 export default {
   props: {
     formItems: {
@@ -193,6 +214,25 @@ export default {
     },
     selectChange(val) {
       this.$emit("selectChange", val);
+    },
+    CascaderhandleChange(val) {
+      console.log(val, "vavvascaca");
+    },
+    readCard() {
+      axios
+        .get("http://127.0.0.1:1501/znmj/readCard")
+        .then((res) => {
+          if (res.data == "NUL") {
+            return this.$message.warning("未检测到标签!");
+          } else if (res.statusText == "OK") {
+            // this.DialogFormData.rfidTid = res.data;
+            bus.$emit("readCard", res.data);
+            this.$message.success("读卡成功");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     },
   },
 };
@@ -250,6 +290,9 @@ export default {
       .el-form-item__content {
         width: calc(100% - 190px);
         margin-left: 10px;
+      }
+      .readCardBtn {
+        margin-left: -50px;
       }
       .el-date-editor {
         width: 100% !important;

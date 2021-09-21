@@ -6,9 +6,9 @@
           <el-button type="purple" size="small" @click="addTemp"
             >添加</el-button
           >
-          <el-button size="small" type="purple" @click="searchData"
+          <!-- <el-button size="small" type="purple" @click="searchData"
             >查询</el-button
-          >
+          > -->
         </template>
       </yh-form>
     </div>
@@ -24,10 +24,10 @@
           <!-- <el-button type="text" size="small" @click="lookDetail(scope.row.id)">
             <i class="el-icon-tickets"></i>
             详情</el-button
-          > -->
+          >
           <el-button type="text" size="small" @click="editTemp(scope.row)">
             <i class="el-icon-edit"></i> 编辑</el-button
-          >
+          > -->
           <el-popconfirm
             title="您确定删除吗？"
             style="margin-left:10px"
@@ -55,20 +55,13 @@
 </template>
 
 <script>
-import bus from "@/utils/bus";
 import YhForm from "@/base-ui/form";
 import YhTable from "@/base-ui/table";
 import Configs from "./config";
 import YhDialog from "@/base-ui/dialog";
-import {
-  getTrayList,
-  saveTray,
-  removeTray,
-  getSafeList,
-  updateTray,
-} from "@/service";
+import { removeRfid, saveRfid, getRfidList } from "@/service";
 import dayjs from "dayjs";
-
+import bus from "@/utils/bus";
 export default {
   components: {
     YhForm,
@@ -82,7 +75,7 @@ export default {
       FormData: Configs.FormData,
       page: { current: 1, size: 10 },
       dialogVisible: false,
-      dialogTitle: "新增托盘",
+      dialogTitle: "新增信息",
       DialogFormConfig: Configs.DialogFormConfig,
       DialogFormData: Configs.DialogFormData,
       tableData: [],
@@ -103,9 +96,8 @@ export default {
   created() {
     this.storeId = this.$store.state.login.userInfo.storeId;
     this.getList();
-    this.getSafe(this.storeId);
     bus.$on("readCard", (e) => {
-      this.DialogFormData.tid = e;
+      this.DialogFormData.rfidTid = e;
     });
   },
   methods: {
@@ -116,45 +108,18 @@ export default {
         .utcOffset(8)
         .format("YYYY-MM-DD");
     },
-    //动态获取保险柜下拉框
-    async getSafe(storeId) {
-      let { data } = await getSafeList(storeId);
-      this.FormConfig.formItems = this.FormConfig.formItems.map((item) => {
-        if (item.field === "safeId") {
-          item.options = data.map((item) => {
-            return {
-              value: item.id,
-              label: item.name,
-            };
-          });
-        }
-        return item;
-      });
-      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
-        (item) => {
-          if (item.field === "safeId") {
-            item.options = data.map((item) => {
-              return {
-                value: item.id,
-                label: item.name,
-              };
-            });
-          }
-          return item;
-        }
-      );
-    },
+
     async searchData() {
-      // console.log(this.FormData);
+      console.log(this.FormData);
       this.getList(this.FormData);
     },
     addTemp() {
       this.defaultInfo = {};
-      this.dialogTitle = "新增托盘";
+      this.dialogTitle = "新增标签";
       this.dialogVisible = true;
     },
     editTemp(row) {
-      this.dialogTitle = "编辑托盘";
+      this.dialogTitle = "编辑标签";
       this.dialogVisible = true;
       this.defaultInfo = { ...row };
     },
@@ -164,9 +129,14 @@ export default {
         storeId: this.storeId,
         ...condition,
       };
-      const { data } = await getTrayList(defaultCondition);
+      const { data } = await getRfidList(defaultCondition);
+      console.log(data, "dadada");
       this.tableData = data.records.map((item) => {
-        item.createTime = this.formatUTCDate(item.createTime);
+        if (item.rfidStatus == "1") {
+          item.rfidStatus = "已绑定";
+        } else {
+          item.rfidStatus = "未绑定";
+        }
         return item;
       });
       this.totalCount = data.total;
@@ -175,10 +145,11 @@ export default {
     },
     async addSubmitClick(flag) {
       if (flag) {
-        let res = await saveTray({
+        let res = await saveRfid({
           ...this.DialogFormData,
           storeId: this.storeId,
         });
+        console.log(res, 111);
         if (res.code == 0) {
           this.dialogVisible = false;
           this.getList();
@@ -191,26 +162,12 @@ export default {
         this.$message.error("带星号的为必填项，请填写相关信息！");
       }
     },
-    async DialogEditClick(flag) {
-      if (flag) {
-        let res = await updateTray({
-          ...this.DialogFormData,
-          storeId: this.storeId,
-        });
-        if (res.code == 0) {
-          this.dialogVisible = false;
-          this.getList();
-          this.$message({
-            type: "success",
-            message: "操作成功!",
-          });
-        }
-      } else {
-        this.$message.error("带星号的为必填项，请填写相关信息！");
-      }
+    DialogEditClick(flag) {
+      this.addSubmitClick(flag);
     },
     async deleteInfo(id) {
-      let { code } = await removeTray(id);
+      let { code } = await removeRfid(id);
+
       if (code == 0) {
         this.getList();
         this.$message({
@@ -234,6 +191,13 @@ export default {
   },
 };
 </script>
+<style>
+.el-popper,
+.el-popover {
+  background: #fff !important;
+  border: 1px solid #eee;
+}
+</style>
 <style lang="less" scoped>
 ::v-deep {
   .el-button--purple {
@@ -250,6 +214,7 @@ export default {
   border-radius: 20px;
   display: flex;
   flex-direction: column;
+
   .search {
     display: flex;
     align-items: center;

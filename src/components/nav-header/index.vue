@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-11 15:12:01
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-11 16:47:58
+ * @LastEditTime: 2021-09-21 18:58:13
 -->
 
 <template>
@@ -17,15 +17,41 @@
         size="medium"
         src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
       ></el-avatar>
-      <span class="username">admin,欢迎登录</span>
+      <span class="username">{{ username }} , 欢迎登录</span>
       <span class="password"><i class="el-icon-edit-outline"></i>修改密码</span>
-      <span class="exit"><i class="el-icon-switch-button"></i>退出</span>
+      <span class="exit" @click="exit"
+        ><i class="el-icon-switch-button"></i>退出</span
+      >
     </div>
   </div>
 </template>
 
 <script>
-export default {};
+import LocalCache from "../../utils/cache";
+export default {
+  data() {
+    return {
+      username: "",
+    };
+  },
+  created() {
+    this.username = this.$store.state.login.userInfo.username;
+  },
+  methods: {
+    exit() {
+      this.$confirm("此操作将退出系统, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      }).then(() => {
+        LocalCache.clearCache();
+        this.$router.push({
+          path: "/main/role",
+        });
+      });
+    },
+  },
+};
 </script>
 
 <style lang="less" scoped>

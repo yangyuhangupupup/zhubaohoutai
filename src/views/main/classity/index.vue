@@ -6,9 +6,9 @@
           <el-button type="purple" size="small" @click="addTemp"
             >添加</el-button
           >
-          <el-button size="small" type="purple" @click="searchData"
+          <!-- <el-button size="small" type="purple" @click="searchData"
             >查询</el-button
-          >
+          > -->
         </template>
       </yh-form>
     </div>
@@ -20,6 +20,12 @@
         :showSelection="false"
         :totalCount="totalCount"
       >
+        <template #level="scope">
+          <el-tag v-if="scope.row.children != null">一级</el-tag>
+          <el-tag type="warning" v-else="scope.row.children != null"
+            >二级</el-tag
+          >
+        </template>
         <template #operation="scope">
           <!-- <el-button type="text" size="small" @click="lookDetail(scope.row.id)">
             <i class="el-icon-tickets"></i>
@@ -55,17 +61,16 @@
 </template>
 
 <script>
-import bus from "@/utils/bus";
 import YhForm from "@/base-ui/form";
 import YhTable from "@/base-ui/table";
 import Configs from "./config";
 import YhDialog from "@/base-ui/dialog";
+
 import {
-  getTrayList,
-  saveTray,
-  removeTray,
-  getSafeList,
-  updateTray,
+  saveCategory,
+  removeCategory,
+  getCategoryList,
+  updateCategory,
 } from "@/service";
 import dayjs from "dayjs";
 
@@ -91,22 +96,10 @@ export default {
       storeId: null, //门店ID
     };
   },
-  watch: {
-    page: {
-      handler(newValue) {
-        console.log(newValue, 111);
-        this.getList(newValue);
-      },
-      deep: true,
-    },
-  },
+
   created() {
     this.storeId = this.$store.state.login.userInfo.storeId;
     this.getList();
-    this.getSafe(this.storeId);
-    bus.$on("readCard", (e) => {
-      this.DialogFormData.tid = e;
-    });
   },
   methods: {
     //格式化utc时间
@@ -116,69 +109,68 @@ export default {
         .utcOffset(8)
         .format("YYYY-MM-DD");
     },
-    //动态获取保险柜下拉框
-    async getSafe(storeId) {
-      let { data } = await getSafeList(storeId);
-      this.FormConfig.formItems = this.FormConfig.formItems.map((item) => {
-        if (item.field === "safeId") {
-          item.options = data.map((item) => {
-            return {
-              value: item.id,
-              label: item.name,
-            };
-          });
-        }
-        return item;
-      });
+
+    async searchData() {
+      console.log(this.FormData);
+      this.getList(this.FormData);
+    },
+    addTemp() {
+      this.defaultInfo = {};
       this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
         (item) => {
-          if (item.field === "safeId") {
+          if (item.field == "pid") {
+            item.hidden = false;
+          }
+          return item;
+        }
+      );
+      this.dialogTitle = "新增分类";
+      this.dialogVisible = true;
+    },
+    editTemp(row) {
+      this.dialogTitle = "编辑分类";
+      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
+        (item) => {
+          if (item.field == "pid") {
+            item.hidden = true;
+          }
+          return item;
+        }
+      );
+      this.dialogVisible = true;
+      this.defaultInfo = { ...row };
+    },
+    async getList(condition) {
+      let defaultCondition = {
+        storeId: this.storeId,
+        ...condition,
+      };
+      const { data } = await getCategoryList(defaultCondition);
+      console.log(data, "dad123123a");
+      this.tableData = data;
+      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
+        (item) => {
+          if (item.field == "pid") {
             item.options = data.map((item) => {
               return {
-                value: item.id,
                 label: item.name,
+                value: item.id,
               };
             });
           }
           return item;
         }
       );
-    },
-    async searchData() {
-      // console.log(this.FormData);
-      this.getList(this.FormData);
-    },
-    addTemp() {
-      this.defaultInfo = {};
-      this.dialogTitle = "新增托盘";
-      this.dialogVisible = true;
-    },
-    editTemp(row) {
-      this.dialogTitle = "编辑托盘";
-      this.dialogVisible = true;
-      this.defaultInfo = { ...row };
-    },
-    async getList(condition) {
-      let defaultCondition = {
-        ...this.page,
-        storeId: this.storeId,
-        ...condition,
-      };
-      const { data } = await getTrayList(defaultCondition);
-      this.tableData = data.records.map((item) => {
-        item.createTime = this.formatUTCDate(item.createTime);
-        return item;
-      });
-      this.totalCount = data.total;
 
       //   console.log(data);
     },
     async addSubmitClick(flag) {
       if (flag) {
-        let res = await saveTray({
+        let res = await saveCategory({
           ...this.DialogFormData,
           storeId: this.storeId,
         });
+        console.log(res, "ssssss");
         if (res.code == 0) {
           this.dialogVisible = false;
           this.getList();
@@ -193,10 +185,11 @@ export default {
     },
     async DialogEditClick(flag) {
       if (flag) {
-        let res = await updateTray({
+        let res = await updateCategory({
           ...this.DialogFormData,
           storeId: this.storeId,
         });
+        console.log(res, "ssssss");
         if (res.code == 0) {
           this.dialogVisible = false;
           this.getList();
@@ -210,7 +203,7 @@ export default {
       }
     },
     async deleteInfo(id) {
-      let { code } = await removeTray(id);
+      let { code } = await removeCategory(id);
       if (code == 0) {
         this.getList();
         this.$message({
@@ -219,18 +212,7 @@ export default {
         });
       }
     },
-    lookDetail(id) {
-      console.log(id);
-      this.showdiv = document.createElement("div");
-      this.showdiv.setAttribute("id", "topdiv");
-      this.showdiv.setAttribute(
-        "style",
-        "position:fixed;top:0;z-index:999999999;width:100%;height:100%"
-      );
-
-      this.showdiv.innerHTML = `<iframe id="idFrame" name="idFrame" src=//${document.location.host}/shya000/#/TechnicalManage/detail?id=${id} style="height:100%;width:100%"></iframe>`;
-      window.parent.document.body.appendChild(this.showdiv);
-    },
+    lookDetail(id) {},
   },
 };
 </script>

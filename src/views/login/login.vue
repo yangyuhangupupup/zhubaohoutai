@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-05 14:38:58
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 14:40:54
+ * @LastEditTime: 2021-09-16 21:46:49
 -->
 <template>
   <div class="login">
@@ -41,8 +41,8 @@ export default {
   data() {
     return {
       account: {
-        account: "",
-        password: "",
+        account: "lisan",
+        password: "123456",
       },
     };
   },

@@ -3,9 +3,9 @@
  * @Author: yyh
  * @Date: 2021-09-05 14:51:06
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 14:05:15
+ * @LastEditTime: 2021-09-19 21:29:01
  */
-const url = "http://218.94.149.27:8800";
+const url = "http://402600b1s6.wicp.vip";
 
 module.exports = {
   publicPath: process.env.NODE_ENV === "production" ? "./" : "/",

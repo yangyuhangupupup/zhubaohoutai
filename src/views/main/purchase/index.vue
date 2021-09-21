@@ -20,11 +20,20 @@
         :showSelection="false"
         :totalCount="totalCount"
       >
+        <template #status="scope">
+          <el-tag v-if="scope.row.status == 1">创建待审核</el-tag>
+          <el-tag type="success" v-if="scope.row.status == 2">已审核</el-tag>
+        </template>
         <template #operation="scope">
-          <!-- <el-button type="text" size="small" @click="lookDetail(scope.row.id)">
-            <i class="el-icon-tickets"></i>
-            详情</el-button
-          > -->
+          <el-popconfirm
+            title="您确定审核吗？"
+            style="margin-right:10px"
+            @confirm="checkInfo(scope.row.id)"
+          >
+            <el-button slot="reference" type="text" size="small"
+              ><i class="el-icon-view"></i>审核</el-button
+            >
+          </el-popconfirm>
           <el-button type="text" size="small" @click="editTemp(scope.row)">
             <i class="el-icon-edit"></i> 编辑</el-button
           >
@@ -42,7 +51,7 @@
     </div>
     <yh-dialog
       v-model="dialogVisible"
-      dialogWidth="700px"
+      dialogWidth="1000px"
       :DialogFormData="DialogFormData"
       :title="dialogTitle"
       :DialogFormConfig="DialogFormConfig"
@@ -55,17 +64,17 @@
 </template>
 
 <script>
-import bus from "@/utils/bus";
 import YhForm from "@/base-ui/form";
 import YhTable from "@/base-ui/table";
 import Configs from "./config";
 import YhDialog from "@/base-ui/dialog";
 import {
-  getTrayList,
-  saveTray,
-  removeTray,
-  getSafeList,
-  updateTray,
+  getPurchaseList,
+  savePurchase,
+  updatePurchase,
+  removePurchase,
+  getCategoryList,
+  checkPurchase,
 } from "@/service";
 import dayjs from "dayjs";
 
@@ -103,10 +112,7 @@ export default {
   created() {
     this.storeId = this.$store.state.login.userInfo.storeId;
     this.getList();
-    this.getSafe(this.storeId);
-    bus.$on("readCard", (e) => {
-      this.DialogFormData.tid = e;
-    });
+    this.getCateGory();
   },
   methods: {
     //格式化utc时间
@@ -116,47 +122,51 @@ export default {
         .utcOffset(8)
         .format("YYYY-MM-DD");
     },
-    //动态获取保险柜下拉框
-    async getSafe(storeId) {
-      let { data } = await getSafeList(storeId);
-      this.FormConfig.formItems = this.FormConfig.formItems.map((item) => {
-        if (item.field === "safeId") {
-          item.options = data.map((item) => {
-            return {
-              value: item.id,
-              label: item.name,
-            };
-          });
-        }
-        return item;
-      });
-      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
-        (item) => {
-          if (item.field === "safeId") {
-            item.options = data.map((item) => {
-              return {
-                value: item.id,
-                label: item.name,
-              };
-            });
-          }
-          return item;
-        }
-      );
-    },
+
     async searchData() {
-      // console.log(this.FormData);
+      console.log(this.FormData);
       this.getList(this.FormData);
     },
     addTemp() {
       this.defaultInfo = {};
-      this.dialogTitle = "新增托盘";
+      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
+        (item) => {
+          if (item.hidden == true) {
+            item.hidden = false;
+          }
+          if (item.disabled == true) {
+            item.disabled = false;
+          }
+          return item;
+        }
+      );
+
+      this.dialogTitle = "新增采购单";
       this.dialogVisible = true;
     },
     editTemp(row) {
-      this.dialogTitle = "编辑托盘";
+      console.log(row, "rowowowow");
+
+      this.dialogTitle = "编辑采购单";
+      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
+        (item) => {
+          if (item.hidden == false) {
+            item.hidden = true;
+          }
+          if (item.disabled == false) {
+            item.disabled = true;
+          }
+          return item;
+        }
+      );
+
       this.dialogVisible = true;
       this.defaultInfo = { ...row };
+      if (row.fatherId != null) {
+        this.defaultInfo.itemId = [row.fatherId, row.itemId];
+      } else {
+        this.defaultInfo.itemId = [row.itemId];
+      }
     },
     async getList(condition) {
       let defaultCondition = {
@@ -164,20 +174,19 @@ export default {
         storeId: this.storeId,
         ...condition,
       };
-      const { data } = await getTrayList(defaultCondition);
-      this.tableData = data.records.map((item) => {
-        item.createTime = this.formatUTCDate(item.createTime);
-        return item;
-      });
-      this.totalCount = data.total;
+      const { data } = await getPurchaseList(defaultCondition);
 
-      //   console.log(data);
+      this.tableData = data.records;
+      this.totalCount = data.total;
     },
     async addSubmitClick(flag) {
       if (flag) {
-        let res = await saveTray({
+        let res = await savePurchase({
           ...this.DialogFormData,
           storeId: this.storeId,
+          itemId: this.DialogFormData.itemId[
+            this.DialogFormData.itemId.length - 1
+          ],
         });
         if (res.code == 0) {
           this.dialogVisible = false;
@@ -193,9 +202,12 @@ export default {
     },
     async DialogEditClick(flag) {
       if (flag) {
-        let res = await updateTray({
+        let res = await updatePurchase({
           ...this.DialogFormData,
           storeId: this.storeId,
+          itemId: this.DialogFormData.itemId[
+            this.DialogFormData.itemId.length - 1
+          ],
         });
         if (res.code == 0) {
           this.dialogVisible = false;
@@ -210,7 +222,7 @@ export default {
       }
     },
     async deleteInfo(id) {
-      let { code } = await removeTray(id);
+      let { code } = await removePurchase(id);
       if (code == 0) {
         this.getList();
         this.$message({
@@ -219,21 +231,39 @@ export default {
         });
       }
     },
-    lookDetail(id) {
-      console.log(id);
-      this.showdiv = document.createElement("div");
-      this.showdiv.setAttribute("id", "topdiv");
-      this.showdiv.setAttribute(
-        "style",
-        "position:fixed;top:0;z-index:999999999;width:100%;height:100%"
+    async checkInfo(id) {
+      let { code } = await checkPurchase(id);
+      if (code == 0) {
+        this.getList();
+        this.$message({
+          type: "success",
+          message: "确认采购单成功!",
+        });
+      }
+    },
+    async getCateGory() {
+      let { data } = await getCategoryList({
+        storeId: this.storeId,
+      });
+      // console.log(data, "11datadatadata");
+      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
+        (item) => {
+          if (item.field === "itemId") {
+            item.options = data;
+          }
+          return item;
+        }
       );
-
-      this.showdiv.innerHTML = `<iframe id="idFrame" name="idFrame" src=//${document.location.host}/shya000/#/TechnicalManage/detail?id=${id} style="height:100%;width:100%"></iframe>`;
-      window.parent.document.body.appendChild(this.showdiv);
     },
   },
 };
 </script>
+<style>
+.el-scrollbar__wrap {
+  overflow-x: hidden;
+  height: 200px;
+}
+</style>
 <style lang="less" scoped>
 ::v-deep {
   .el-button--purple {

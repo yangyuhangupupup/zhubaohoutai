@@ -55,17 +55,16 @@
 </template>
 
 <script>
-import bus from "@/utils/bus";
 import YhForm from "@/base-ui/form";
 import YhTable from "@/base-ui/table";
 import Configs from "./config";
 import YhDialog from "@/base-ui/dialog";
+import bus from "@/utils/bus";
 import {
-  getTrayList,
-  saveTray,
-  removeTray,
-  getSafeList,
-  updateTray,
+  getsafeBoxList,
+  saveSafeBox,
+  removeSafeBox,
+  updateSafeBox,
 } from "@/service";
 import dayjs from "dayjs";
 
@@ -103,7 +102,6 @@ export default {
   created() {
     this.storeId = this.$store.state.login.userInfo.storeId;
     this.getList();
-    this.getSafe(this.storeId);
     bus.$on("readCard", (e) => {
       this.DialogFormData.tid = e;
     });
@@ -116,45 +114,18 @@ export default {
         .utcOffset(8)
         .format("YYYY-MM-DD");
     },
-    //动态获取保险柜下拉框
-    async getSafe(storeId) {
-      let { data } = await getSafeList(storeId);
-      this.FormConfig.formItems = this.FormConfig.formItems.map((item) => {
-        if (item.field === "safeId") {
-          item.options = data.map((item) => {
-            return {
-              value: item.id,
-              label: item.name,
-            };
-          });
-        }
-        return item;
-      });
-      this.DialogFormConfig.formItems = this.DialogFormConfig.formItems.map(
-        (item) => {
-          if (item.field === "safeId") {
-            item.options = data.map((item) => {
-              return {
-                value: item.id,
-                label: item.name,
-              };
-            });
-          }
-          return item;
-        }
-      );
-    },
+
     async searchData() {
-      // console.log(this.FormData);
+      console.log(this.FormData);
       this.getList(this.FormData);
     },
     addTemp() {
       this.defaultInfo = {};
-      this.dialogTitle = "新增托盘";
+      this.dialogTitle = "新增保险柜";
       this.dialogVisible = true;
     },
     editTemp(row) {
-      this.dialogTitle = "编辑托盘";
+      this.dialogTitle = "编辑保险柜";
       this.dialogVisible = true;
       this.defaultInfo = { ...row };
     },
@@ -164,21 +135,20 @@ export default {
         storeId: this.storeId,
         ...condition,
       };
-      const { data } = await getTrayList(defaultCondition);
-      this.tableData = data.records.map((item) => {
-        item.createTime = this.formatUTCDate(item.createTime);
-        return item;
-      });
+      const { data } = await getsafeBoxList(defaultCondition);
+      // console.log(data, "dada");
+      this.tableData = data.records;
       this.totalCount = data.total;
 
       //   console.log(data);
     },
     async addSubmitClick(flag) {
       if (flag) {
-        let res = await saveTray({
+        let res = await saveSafeBox({
           ...this.DialogFormData,
           storeId: this.storeId,
         });
+        console.log(res, "ssssss");
         if (res.code == 0) {
           this.dialogVisible = false;
           this.getList();
@@ -193,10 +163,11 @@ export default {
     },
     async DialogEditClick(flag) {
       if (flag) {
-        let res = await updateTray({
+        let res = await updateSafeBox({
           ...this.DialogFormData,
           storeId: this.storeId,
         });
+        // console.log(res, "ssssss");
         if (res.code == 0) {
           this.dialogVisible = false;
           this.getList();
@@ -210,7 +181,7 @@ export default {
       }
     },
     async deleteInfo(id) {
-      let { code } = await removeTray(id);
+      let { code } = await removeSafeBox(id);
       if (code == 0) {
         this.getList();
         this.$message({
@@ -219,18 +190,7 @@ export default {
         });
       }
     },
-    lookDetail(id) {
-      console.log(id);
-      this.showdiv = document.createElement("div");
-      this.showdiv.setAttribute("id", "topdiv");
-      this.showdiv.setAttribute(
-        "style",
-        "position:fixed;top:0;z-index:999999999;width:100%;height:100%"
-      );
-
-      this.showdiv.innerHTML = `<iframe id="idFrame" name="idFrame" src=//${document.location.host}/shya000/#/TechnicalManage/detail?id=${id} style="height:100%;width:100%"></iframe>`;
-      window.parent.document.body.appendChild(this.showdiv);
-    },
+    lookDetail(id) {},
   },
 };
 </script>

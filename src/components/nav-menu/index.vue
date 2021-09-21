@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-09-09 21:01:53
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-11 15:32:36
+ * @LastEditTime: 2021-09-21 18:54:00
 -->
 <template>
   <div class="nav-menu">
@@ -16,7 +16,7 @@
               <span>{{ item.name }}</span>
             </template>
             <el-menu-item
-              :index="subItem.id + ''"
+              :index="subItem.path"
               v-for="subItem in item.children"
               :key="subItem.id"
             >
@@ -47,4 +47,8 @@ export default {
 };
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.el-menu {
+  border: none;
+}
+</style>

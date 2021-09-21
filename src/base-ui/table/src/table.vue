@@ -3,7 +3,7 @@
  * @Author: yyh
  * @Date: 2021-08-27 17:15:53
  * @LastEditors: yyh
- * @LastEditTime: 2021-09-12 16:36:33
+ * @LastEditTime: 2021-09-21 17:08:48
 -->
 <template>
   <div class="tableWrapper">
@@ -13,6 +13,9 @@
           :data="tableData"
           style="width: 100%;"
           @selection-change="handleSelectionChange"
+          row-key="id"
+          :row-class-name="tableRowClassName"
+          height="100%"
         >
           <el-table-column
             v-if="showSelection"
@@ -41,6 +44,7 @@
               :label="item.label"
               :min-width="item.minWidth"
               :show-overflow-tooltip="item.showoverflowtooltip"
+              v-bind="item.otherOptions"
               align="center"
             >
               <template slot-scope="scope">
@@ -117,6 +121,13 @@ export default {
     handleCurrentChange(current) {
       this.$emit("update", { ...this.page, current });
     },
+    tableRowClassName({ row, rowIndex }) {
+      // console.log(row, "rawrawawaw");
+      if (row.isConfirm == "2") {
+        return "warning-row";
+      }
+      return "";
+    },
   },
 };
 </script>
@@ -130,6 +141,14 @@ export default {
   .el-select .el-input__inner {
     border-color: #551bf0;
   }
+  .el-table .warning-row {
+    background: red !important;
+    color: #fff;
+  }
+  .el-table tbody tr:hover > td {
+    background-color: #ecf5ff !important;
+    color: #000;
+  }
 }
 
 .tableWrapper {
@@ -139,10 +158,12 @@ export default {
   .content {
     height: calc(100% - 45px);
     background: #fff;
+
+    // border: 1px solid red;
   }
   ::v-deep.el-table {
     overflow-y: auto;
-
+    max-height: calc(100vh - 200px);
     border-bottom: 1px solid #ebeef5;
 
     overflow: auto;
